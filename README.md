@@ -2,7 +2,7 @@
 
 This repository provides a configurable and modular Terraform setup to deploy [Databricks Unity Catalog (UC)] resources across workspaces and metastores in a standardized, reusable, and scalable manner.
 
-## 🔍 Overview
+##  Overview
 
 Unity Catalog is Databricks’ unified governance solution for all data and AI assets. This module automates:
 - Creation of catalogs, schemas, tables, external locations
@@ -25,7 +25,7 @@ The project supports multi-cloud and multi-metastore deployments using a config-
 
 ---
 
-## 🚀 Use Cases
+##  Use Cases
 
 - Automate provisioning of Unity Catalog resources across multiple Databricks workspaces
 - Apply consistent grants and access policies across catalogs and schemas
