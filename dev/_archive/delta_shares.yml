@@ -1,0 +1,47 @@
+#
+# 1. Metastore Admins have the right to create and manage shares, providers and recipients
+# 2. Any group/user added to the metastore_admins group will have the capability
+# 3. In order to provision deltasharing in an automated way, the service account (running the terraform deployment)
+#  must have the following privileges:
+#    a. Create Recipient
+#    b. Create Share
+#    c. Use Recipient
+#    d. Use Share
+#    e. Create Provider
+#    f. Use Provider
+#    g. Set Share Permission
+# 4. Regular users do not have any permission on the metastore, which means they wont see Recipients, Providers or Shares
+# 5. platform_admins will have elevated privileges
+# 6. In order to share data manually, i.e. not using Terraform, any user or group
+#    a. USE RECIPEINT : This allows a provider user who is not a metastore admin to view recipient details,
+#    recipient authentication status, and the list of shares that the provider has shared with the recipient.
+#    b. USE SHARE:  gives a provider user read-only access to all shares defined in a provider metastore.
+#    This allows a provider user who is not a metastore admin to list shares and list the assets (tables and notebooks)
+#    in a share, along with the share's recipients.
+#    c. USE PROVIDER:  gives a recipient user read-only access to all providers in a recipient metastore and their shares.
+#    Combined with the CREATE CATALOG privilege, this privilege allows a recipient user who is not a metastore admin
+#    to mount a share as a catalog.
+
+
+# How do we restrict users from creating share, and sharing data on existing shares
+# who will be able to create the recipient as a one time?
+# who will be able to add objects to the created delta share
+uc_objects:
+  recipients:
+    - name: ts42_bu_region_internal
+      recipient_sharing_id: azure:westus2:<current_metastore_id>
+
+    - name: ts42_bu_region_external
+      recipient_sharing_id: azure:<region>:<metastore_id>
+
+  shares:
+    - name: ts42_bu_region_internal_share
+      recipient_names:
+        - ts42_bu_region_internal
+        - ts42_bu_region_external
+      internal_recipient_catalog_name: ts42_bu_region_published
+      objects:
+        - type: SCHEMA
+          name: <catalog>.<schema_name>
+        - type: TABLE
+          name: <catalog>.<schema_name>.<table_name>

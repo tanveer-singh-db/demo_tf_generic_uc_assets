@@ -1,0 +1,16 @@
+#
+#groups:
+#  - name: ts42-bu-dev-catalog-owner
+#    permissions: ["ADMIN"]
+#  - name: ts42-bu-data-scientists
+#    permissions: ["USER"]
+#  - name: ts42-dev-silver-democatalog-ro
+#    permissions: ["USER"]
+#  - name: ts42-dev-silver-democatalog-rw
+#    permissions: ["USER"]
+#  - name: ts42-dev-silver-democatalog-ro-pii
+#    permissions: ["USER"]
+#
+#admin_users:
+#users:
+#  - user@domain.com

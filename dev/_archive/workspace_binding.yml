@@ -1,0 +1,19 @@
+
+# TO be used in case of catalogs/storage_credentials/external_locations created in
+# the current workspace environment
+# need to be accessible from other workspaces
+# https://<deployment>.cloud.databricks.com/?o=1234567890123456
+#                                                         │
+#                                                         └── Workspace ID
+#workspace_bindings:
+#  # Example 2: Minimal configuration with only catalogs (uses default binding type)
+#  - workspace_id: "42918693627574582189"
+#    catalogs:
+#      - "ts42_cib_cash_dev"
+#
+#  # Example 3: Mixed configuration with external locations
+#  - workspace_id: "42918693627574582189"
+#    external_locations:
+#      - "bronzeapp1@ts42cibcashdev"
+#      - "silverapp1@ts42cibcashdev"
+#    binding_type: "BINDING_TYPE_READ_ONLY"
