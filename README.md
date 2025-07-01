@@ -87,4 +87,3 @@ terraform init -reconfigure -backend-config=../<cloudEnvironment>/<region>/<work
 ```shell
 terraform plan -var-file=../<cloudEnvironment>/<region>/<workspaceInfo>/terraform.tfvars
 ```
-

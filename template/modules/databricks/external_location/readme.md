@@ -40,3 +40,39 @@ module "external_location" {
 }
 ```
 
+
+<!-- BEGIN_TF_DOCS -->
+## Requirements
+
+| Name | Version |
+|------|---------|
+| <a name="requirement_databricks"></a> [databricks](#requirement\_databricks) | >= 1.48.2 |
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| <a name="provider_databricks"></a> [databricks](#provider\_databricks) | >= 1.48.2 |
+
+## Modules
+
+No modules.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| [databricks_external_location.this](https://registry.terraform.io/providers/databricks/databricks/latest/docs/resources/external_location) | resource |
+
+## Inputs
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_external_location"></a> [external\_location](#input\_external\_location) | Configuration for Azure external location | <pre>object({<br/>    name               = string<br/>    url                = string       # Azure format: abfss://<container>@<storage_account>.dfs.core.windows.net/<path><br/>    credential_name    = string<br/>    owner              = optional(string)<br/>    comment            = optional(string)<br/>    skip_validation    = optional(bool, false)<br/>    fallback           = optional(bool, false)<br/>    read_only          = optional(bool, false)<br/>    force_destroy      = optional(bool, false)<br/>    force_update       = optional(bool, false)<br/>    isolation_mode     = optional(string, "ISOLATION_MODE_ISOLATED")<br/>  })</pre> | n/a | yes |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| <a name="output_external_location_name"></a> [external\_location\_name](#output\_external\_location\_name) | n/a |
+<!-- END_TF_DOCS -->

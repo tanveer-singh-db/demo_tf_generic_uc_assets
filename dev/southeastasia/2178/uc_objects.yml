@@ -10,6 +10,25 @@ catalogs:
     storage_root: abfss://base@<storage_account>.dfs.core.windows.net/
     comment: "Dev catalog for BU Domain"
 
+recipients:
+  - name: <org_region_internal>
+    recipient_sharing_id: azure:<region1>:<current_metastore_id> # sharing identifier
+
+  - name: <org_region_external>
+    recipient_sharing_id: azure:<region2>:<cross-region-metastore-id> #sharing identifier 2
+
+shares:
+  - name: <internal_share_name>
+    recipient_names:
+      - <org_region_internal>
+    internal_recipient_catalog_name: <data_domain>_published
+    objects:
+      - type: SCHEMA
+        name: <schema_name>
+      - type: TABLE
+        name: <table_name>
+
+
 schemas:
   - name: bronze_app1
     catalog_name: <catalog_name>

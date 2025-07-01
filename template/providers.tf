@@ -9,11 +9,11 @@ terraform {
 
 provider "databricks" {
   alias = "workspace"
-  auth_type = "azure-client-secret"
   host  = var.databricks_workspace_url
-  azure_client_id             = var.client_id
-  azure_client_secret         = var.client_secret
-  azure_tenant_id = var.deployment_tenant_id
+  # auth_type = "azure-client-secret"
+  # azure_client_id             = var.client_id
+  # azure_client_secret         = var.client_secret
+  # azure_tenant_id = var.deployment_tenant_id
 
 }
 
