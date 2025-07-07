@@ -1,0 +1,45 @@
+name: $(Date:yyyyMMdd)$(Rev:.r)
+trigger:
+  - main
+
+variables:
+  python.version: '3.9'
+  config.file: 'config.yaml'  # Update to your config path
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+- stage: Validate UC Config
+  jobs:
+  - job: UnityCatalogValidation
+    displayName: 'Validate Unity Catalog Config'
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(python.version)'
+      displayName: 'Use Python $(python.version)'
+
+    - script: |
+        pip install databricks-sdk azure-identity azure-mgmt-storage pydantic pyyaml
+      displayName: 'Install dependencies'
+
+    - task: AzureCLI@2
+      displayName: 'Azure Login'
+      inputs:
+        azureSubscription: 'your-azure-service-connection'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          az account show
+
+    - script: |
+        python validate_uc_config.py $(config.file)
+      displayName: 'Run Validation'
+      env:
+        AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
+        DATABRICKS_HOST: $(DATABRICKS_HOST)
+        DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
+        AZURE_TENANT_ID: $(AZURE_TENANT_ID)
+        AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
+        AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
