@@ -2,10 +2,6 @@ name: $(Date:yyyyMMdd)$(Rev:.r)
 trigger:
   - main
 
-variables:
-  python.version: '3.9'
-  config.file: 'config.yaml'  # Update to your config path
-
 pool:
   vmImage: ubuntu-latest
 
