@@ -21,7 +21,7 @@ stages:
 
           - script: |
               python -m pip install --upgrade pip
-              pip install -r requirements.txt
+              pip install databricks-sdk azure-identity azure-mgmt-storage pydantic pyyaml
             displayName: 'Install Python dependencies'
 
           - script: |
@@ -38,7 +38,7 @@ stages:
               echo "Extracted workspace_url: $WORKSPACE_URL"
 
               echo "Running UC config validation..."
-              python validate_uc_config.py \
+              python run_config_validator.py \
                 --config_dir "$CONFIG_DIR" \
                 --workspace_url "$WORKSPACE_URL" \
                 --subscription_id "${{ parameters.deploymentSubscriptionId }}"
