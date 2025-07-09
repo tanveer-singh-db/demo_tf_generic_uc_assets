@@ -10,36 +10,40 @@ pool:
   vmImage: ubuntu-latest
 
 stages:
-- stage: Validate UC Config
-  jobs:
-  - job: UnityCatalogValidation
-    displayName: 'Validate Unity Catalog Config'
-    steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '$(python.version)'
-      displayName: 'Use Python $(python.version)'
+  - stage: validate_uc_config
+    displayName: "Validate Unity Catalog Config"
+    jobs:
+      - job: validate
+        displayName: "Run Config Validator"
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.10'
+              addToPath: true
 
-    - script: |
-        pip install databricks-sdk azure-identity azure-mgmt-storage pydantic pyyaml
-      displayName: 'Install dependencies'
+          - script: |
+              python -m pip install --upgrade pip
+              pip install -r requirements.txt
+            displayName: 'Install Python dependencies'
 
-    - task: AzureCLI@2
-      displayName: 'Azure Login'
-      inputs:
-        azureSubscription: 'your-azure-service-connection'
-        scriptType: 'bash'
-        scriptLocation: 'inlineScript'
-        inlineScript: |
-          az account show
+          - script: |
+              echo "Reading workspace_url from terraform.tfvars..."
+              CONFIG_DIR="${{ parameters.cloudEnvironment }}/${{ parameters.region }}/${{ parameters.workSpaceId }}"
+              TFVARS_PATH="$CONFIG_DIR/terraform.tfvars"
 
-    - script: |
-        python validate_uc_config.py $(config.file)
-      displayName: 'Run Validation'
-      env:
-        AZURE_SUBSCRIPTION_ID: $(AZURE_SUBSCRIPTION_ID)
-        DATABRICKS_HOST: $(DATABRICKS_HOST)
-        DATABRICKS_TOKEN: $(DATABRICKS_TOKEN)
-        AZURE_TENANT_ID: $(AZURE_TENANT_ID)
-        AZURE_CLIENT_ID: $(AZURE_CLIENT_ID)
-        AZURE_CLIENT_SECRET: $(AZURE_CLIENT_SECRET)
+              if [ ! -f "$TFVARS_PATH" ]; then
+                echo "Error: terraform.tfvars not found at $TFVARS_PATH"
+                exit 1
+              fi
+
+              WORKSPACE_URL=$(grep -oP 'workspace_url\s*=\s*"\K[^"]+' "$TFVARS_PATH")
+              echo "Extracted workspace_url: $WORKSPACE_URL"
+
+              echo "Running UC config validation..."
+              python validate_uc_config.py \
+                --config_dir "$CONFIG_DIR" \
+                --workspace_url "$WORKSPACE_URL" \
+                --subscription_id "${{ parameters.deploymentSubscriptionId }}"
+            displayName: 'Validate UC Configuration'
