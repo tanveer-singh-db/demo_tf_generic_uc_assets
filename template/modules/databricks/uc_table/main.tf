@@ -1,3 +1,21 @@
+resource "databricks_sql_endpoint" "this" {
+  name             = "tf-table-deployment-endpoint"
+  cluster_size     = "2X-Small"
+  max_num_clusters = 1
+  auto_stop_mins = 10
+  tags {
+    custom_tags {
+      key   = "ManagedBy"
+      value = "Terraform"
+    }
+    custom_tags {
+      key   = "Purpose"
+      value = "TableDeployment"
+    }
+  }
+
+}
+
 
 resource "databricks_sql_table" "this" {
   for_each = var.sql_tables == null ? {} : { for table in var.sql_tables : table.name => table }
@@ -15,6 +33,7 @@ resource "databricks_sql_table" "this" {
   options            = lookup(each.value, "options", null)
   properties         = lookup(each.value, "properties", null)
   storage_location   = each.value.table_type == "EXTERNAL" ? lookup(each.value, "storage_location", null) : null
+  warehouse_id       = databricks_sql_endpoint.this.id
 
   dynamic "column" {
     for_each = each.value.table_type != "VIEW" ? each.value.columns != null ? each.value.columns: [] : []

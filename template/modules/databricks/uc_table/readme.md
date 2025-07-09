@@ -77,6 +77,7 @@ No modules.
 
 | Name | Type |
 |------|------|
+| [databricks_sql_endpoint.this](https://registry.terraform.io/providers/databricks/databricks/latest/docs/resources/sql_endpoint) | resource |
 | [databricks_sql_table.this](https://registry.terraform.io/providers/databricks/databricks/latest/docs/resources/sql_table) | resource |
 
 ## Inputs
