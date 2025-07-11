@@ -18,7 +18,7 @@ resource "databricks_sql_endpoint" "this" {
 
 
 resource "databricks_sql_table" "this" {
-  for_each = var.sql_tables == null ? {} : { for table in var.sql_tables : table.name => table }
+  for_each = var.sql_tables == null ? {} : { for table in var.sql_tables : "${table.catalog_name}.${table.schema_name}.${table.name}" => table }
 
   name               = each.value.name
   catalog_name       = each.value.catalog_name
