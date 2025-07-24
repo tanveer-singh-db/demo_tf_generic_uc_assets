@@ -18,38 +18,58 @@ This tool validates Unity Catalog configuration files against Azure resources an
 3. Databricks workspace with:
    - Unity Catalog enabled
    - Workspace admin privileges
-4. Environment variables configured:
-   ```bash
-   export AZURE_SUBSCRIPTION_ID="<your-azure-subscription-id>"
-   export DATABRICKS_HOST="<your-databricks-workspace-url>"
-   export DATABRICKS_TOKEN="<your-databricks-access-token>"
-   ```
+4. Azure CLI Authentication for both Azure and Databricks Workspaces
 
-## Installation
-```shell
-# Clone repository
-git clone https://github.com/your-repo/unity-catalog-validator.git
-cd unity-catalog-validator
 
-# Create virtual environment
-python3 -m venv venv
-source venv/bin/activate
+## CLI Usage
 
-# Install dependencies
-pip install -r requirements.txt
-```
-## Usage
-```shell
-python -m autoconfig.cli path/to/config.yaml
+The package provides a command-line interface for configuration validation:
+
+```bash
+python run_config_validator.py \
+    --config_dir ./configs \
+    --workspace_url https://your-workspace.cloud.databricks.com \
+    --subscription_id xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
-### Exit Codes
-| Code | Meaning                         |
-|------|---------------------------------|
-| 0    | Validation successful           |
-| 1    | Validation errors detected      |
-| 2    | Config file loading error       |
-| 3    | Missing environment variables   |
-| 4    | Unexpected runtime error        |
+### Command Line Options
+
+| Option | Description | Required |
+|--------|-------------|----------|
+| `--config_dir` | Path to directory containing YAML configs | Yes |
+| `--workspace_url` | Databricks workspace URL | Yes |
+| `--subscription_id` | Azure subscription ID | Yes |
 
 
+## Python API Usage
+
+You can also use the validator programmatically:
+
+```python
+from autoconfig.config_validator import ConfigValidator
+
+validator = ConfigValidator(
+    config_dir="./configs",
+    workspace_url="https://your-workspace.cloud.databricks.com",
+    subscription_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+)
+
+errors = validator.validate()
+if errors:
+    print("Validation failed:")
+    for error in errors:
+        print(f"- {error}")
+else:
+    print("Validation successful!")
+```
+
+
+
+## Development
+
+### Dependencies
+
+- Python 3.7+
+- Pydantic
+- Azure SDK
+- Databricks SDK

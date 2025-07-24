@@ -1,3 +1,9 @@
+"""
+Unity Catalog Configuration Validation CLI Tool
+
+This script provides a command-line interface for validating Unity Catalog configurations
+against Azure resources and Databricks workspace settings.
+"""
 import argparse
 import json
 from argparse import ArgumentParser

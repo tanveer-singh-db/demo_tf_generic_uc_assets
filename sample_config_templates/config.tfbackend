@@ -1,0 +1,4 @@
+resource_group_name = "<backend_storage_account_resource_group_name>"
+storage_account_name = "<backend_storage_account_name>"
+container_name = "<container_name>"
+key = "<unique_path_for_this_workspace>/terraform.tfstate"

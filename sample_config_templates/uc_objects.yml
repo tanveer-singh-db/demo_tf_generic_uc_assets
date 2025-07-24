@@ -1,0 +1,113 @@
+
+
+external_locations:
+  - name: base@<catalog_name>
+    url: abfss://base@<storage_account>.dfs.core.windows.net/
+    credential_name: <storage_credential_name>
+
+catalogs:
+  - name: <catalog_name>
+    storage_root: abfss://base@<storage_account>.dfs.core.windows.net/
+    comment: "Dev catalog for BU Domain"
+
+recipients:
+  - name: <org_region_internal>
+    recipient_sharing_id: azure:<region1>:<current_metastore_id> # sharing identifier
+
+  - name: <org_region_external>
+    recipient_sharing_id: azure:<region2>:<cross-region-metastore-id> #sharing identifier 2
+
+shares:
+  - name: <internal_share_name>
+    recipient_names:
+      - <org_region_internal>
+    internal_recipient_catalog_name: <data_domain>_published
+    objects:
+      - type: SCHEMA
+        name: <schema_name>
+      - type: TABLE
+        name: <table_name>
+
+
+schemas:
+  - name: bronze_app1
+    catalog_name: <catalog_name>
+    storage_root: abfss://bronzeapp1@<storage_account>.dfs.core.windows.net/
+  - name: silver_app1
+    catalog_name: <catalog_name>
+    storage_root: abfss://silverapp1@<storage_account>.dfs.core.windows.net/
+  - name: gold_app1
+    catalog_name: <catalog_name>
+    storage_root: abfss://goldapp1@<storage_account>.dfs.core.windows.net/
+  - name: ml_assets_app1
+    catalog_name: <catalog_name>
+    storage_root: abfss://mlassetsapp1@<storage_account>.dfs.core.windows.net/
+
+
+sql_tables:
+  - name: yellow_tripdata
+    catalog_name: <catalog_name>
+    schema_name: silver_app1
+    table_type: MANAGED
+    comment: NYC Yellow Taxi Trip records from the TLC dataset
+    columns:
+      - name: VendorID
+        type: int
+        comment: Taxi company ID (1 = CMT, 2 = VeriFone)
+      - name: tpep_pickup_datetime
+        type: timestamp
+        comment: Trip start time
+      - name: tpep_dropoff_datetime
+        type: timestamp
+        comment: Trip end time
+      - name: passenger_count
+        type: int
+        comment: Number of passengers
+      - name: trip_distance
+        type: double
+        comment: Distance traveled in miles
+      - name: RatecodeID
+        type: int
+        comment: Rate type (e.g., 1 = Standard, 2 = JFK)
+      - name: store_and_forward_flag
+        type: string
+        comment: Y if stored before sending to server, N otherwise
+      - name: PULocationID
+        type: int
+        comment: Pickup zone ID (linked to taxi_zone_lookup)
+      - name: DOLocationID
+        type: int
+        comment: Drop-off zone ID
+      - name: payment_type
+        type: int
+        comment: Payment method (1 = Credit Card, 2 = Cash, etc.)
+      - name: fare_amount
+        type: double
+        comment: Fare amount in USD
+      - name: extra
+        type: double
+        comment: Additional charges (e.g., rush hour surcharge)
+      - name: mta_tax
+        type: double
+        comment: MTA tax ($0.50)
+      - name: tip_amount
+        type: double
+        comment: Tip given by passenger
+      - name: tolls_amount
+        type: double
+        comment: Toll charges
+      - name: improvement_surcharge
+        type: double
+        comment: $0.30 improvement surcharge
+      - name: total_amount
+        type: double
+        comment: Total amount charged
+      - name: congestion_surcharge
+        type: double
+        comment: Congestion zone fee
+      - name: airport_fee
+        type: double
+        comment: Airport access fee (if applicable)
+    cluster_keys:
+      - PULocationID
+      - DOLocationID

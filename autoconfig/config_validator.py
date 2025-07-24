@@ -1,3 +1,9 @@
+"""
+Unity Catalog Configuration Validator
+
+This module provides functionality to validate Unity Catalog configurations
+against Azure resources and Databricks workspace settings.
+"""
 import pathlib
 import re
 from collections import ChainMap
@@ -17,10 +23,26 @@ from autoconfig.validation_models import UcObjectsConfig, DeltaSharingConfig
 
 
 class ConfigValidator:
-    """Validates Unity Catalog configuration against Databricks and Azure resources"""
+    """
+        Validates Unity Catalog configuration against Azure resources and Databricks workspace.
+
+        This class performs comprehensive validation including:
+        - Configuration file structure validation
+        - Azure storage resource existence checks
+        - Databricks Unity Catalog object validation
+        - Container uniqueness verification
+        """
     def __init__(self, config_dir: str,
                  subscription_id: str,
                  workspace_url: str):
+        """
+        Initialize the validator with configuration and connection details.
+
+        Args:
+            config_dir: Path to directory containing YAML configuration files
+            subscription_id: Azure subscription ID for storage validation
+            workspace_url: Databricks workspace URL for API connections
+        """
         self.log = get_log("config_validator")
         self.config_dir = config_dir
 
@@ -40,12 +62,20 @@ class ConfigValidator:
         self._set_workspace_client()
 
     def _set_workspace_client(self):
+        """Initialize Databricks WorkspaceClient with Azure CLI authentication."""
         self.db_client = WorkspaceClient(
             host=self.workspace_url,
             auth_type="azure-cli",
         )
 
     def _set_config(self):
+        """
+        Load and merge all YAML configuration files from the config directory.
+
+        Raises:
+            FileNotFoundError: If config directory doesn't exist
+            RuntimeError: If any YAML file fails to load
+        """
         config_path = pathlib.Path(self.config_dir)
         # Validate config directory exists
         if not config_path.is_dir():
@@ -70,7 +100,12 @@ class ConfigValidator:
 
 
     def _validate_config_structure(self) -> bool:
-        """Validate configuration structure using Pydantic models"""
+        """
+        Validate configuration structure using Pydantic models.
+
+        Returns:
+            bool: True if validation succeeds, False otherwise
+        """
         try:
             # Define nested Pydantic models for structure validation
             # Define Pydantic models for UC Objects
@@ -78,6 +113,7 @@ class ConfigValidator:
 
             # Root configuration model
             class RootConfig(BaseModel):
+                """Root configuration model combining all validation models."""
                 uc_objects_config: Optional[UcObjectsConfig] = None
                 delta_sharing_config: Optional[DeltaSharingConfig] = None
 
@@ -100,7 +136,7 @@ class ConfigValidator:
         storage_accounts = set()
         containers = set()
 
-        # Collect all storage references
+        # Collect all storage references from configuration
         for section in ['external_locations', 'catalogs', 'schemas']:
             for item in self.merged_config.get(section, []):
                 url = item.get('url') or item.get('storage_root', '')
@@ -123,7 +159,7 @@ class ConfigValidator:
                 self.errors.append(f"Container does not exist: {container}@{account}")
 
     def _check_storage_credentials(self):
-        """Verify storage credentials exist in Unity Catalog"""
+        """Verify all referenced storage credentials exist in Unity Catalog."""
         try:
             existing_creds = [c.name for c in self.db_client.storage_credentials.list()]
 
@@ -135,7 +171,7 @@ class ConfigValidator:
             self.errors.append(f"Credential check failed: {str(e)}")
 
     def _check_container_uniqueness(self):
-        """Ensure containers aren't reused across UC objects"""
+        """Ensure containers aren't reused across different UC objects."""
         for section in ['catalogs', 'schemas']:
             for item in self.merged_config.get(section, []):
                 url = item.get('storage_root', '')
@@ -162,7 +198,15 @@ class ConfigValidator:
                 )
 
     def _parse_abfss_url(self, url: str) -> Tuple[str, str]:
-        """Extract storage account and container from ABFSS URL"""
+        """
+        Parse ABFSS URL to extract storage account and container names.
+
+        Args:
+            url: ABFSS URL to parse (format: abfss://container@account.dfs.core.windows.net)
+
+        Returns:
+            Tuple of (account_name, container_name) or ("", "") if parsing fails
+        """
         pattern = r"abfss://([^@]+)@([^.]+)\.dfs\.core\.windows\.net"
         match = re.match(pattern, url)
         if match:
@@ -170,12 +214,16 @@ class ConfigValidator:
         return "", ""
 
     def _storage_account_exists(self, account_name: str) -> bool:
-        """Check if storage account exists in Azure"""
+        """
+        Check if storage account exists in Azure subscription.
+
+        Args:
+            account_name: Name of the storage account to check
+
+        Returns:
+            bool: True if account exists, False otherwise
+        """
         try:
-            # return bool(self.storage_client.storage_accounts.get_properties(
-            #     resource_group_name="*",  # Search all resource groups
-            #     account_name=account_name
-            # ))
             for account in self.storage_client.storage_accounts.list():
                 if account.name == account_name:
                     return True
@@ -185,21 +233,17 @@ class ConfigValidator:
             return False
 
     def _container_exists(self, account_name: str, container_name: str) -> bool:
-        """Check if blob container exists in storage account"""
+        """
+        Check if blob container exists in specified storage account.
+
+        Args:
+            account_name: Storage account name
+            container_name: Container name to check
+
+        Returns:
+            bool: True if container exists, False otherwise
+        """
         try:
-            # account = self.storage_client.storage_accounts.get_properties(
-            #     resource_group_name="*",
-            #     account_name=account_name
-            # )
-            #
-            # # Get resource group from account ID
-            # rg = account.id.split('/')[4]
-            #
-            # return bool(self.storage_client.blob_containers.get(
-            #     resource_group_name=rg,
-            #     account_name=account_name,
-            #     container_name=container_name
-            # ))
             # Find the storage account and extract its resource group
             for account in self.storage_client.storage_accounts.list():
                 if account.name == account_name:
@@ -220,7 +264,12 @@ class ConfigValidator:
             return False
 
     def validate(self) -> List[str]:
-        """Run all validation checks"""
+        """
+        Execute all validation checks in sequence.
+
+        Returns:
+            List of error messages (empty list indicates successful validation)
+        """
         self.errors = []
 
         if not self._validate_config_structure():

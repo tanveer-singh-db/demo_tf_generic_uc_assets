@@ -1,0 +1,72 @@
+
+uc_object_grants:
+  catalogs:
+    - name: <catalog_name>
+      grants:
+        - principals:
+            - <prefix>_<catalog_name>_admin
+          permissions:
+            - ALL_PRIVILEGES
+        - principals:
+          - <prefix>_<catalog_name>_browse
+          - <prefix>_<catalog_name>_bronze_app1_ro
+          - <prefix>_<catalog_name>_bronze_app1_rw
+          - <prefix>_<catalog_name>_bronze_app1_ro_pii
+          - <prefix>_<catalog_name>_silver_app1_ro
+          - <prefix>_<catalog_name>_silver_app1_rw
+          - <prefix>_<catalog_name>_silver_app1_ro_pii
+          - <prefix>_<catalog_name>_gold_app1_ro
+          - <prefix>_<catalog_name>_gold_app1_rw
+          - <prefix>_<catalog_name>_gold_app1_ro_pii
+          - <prefix>_<catalog_name>_mlassets_app1_ro
+          - <prefix>_<catalog_name>_mlassets_app1_rw
+          - <prefix>_<catalog_name>_mlassets_app1_ro_pii
+          permissions:
+            - USE_CATALOG
+            - BROWSE
+
+  schemas:
+    - name: <catalog_name>.bronze_app1
+      grants:
+        - principals:
+          - <prefix>_<catalog_name>_bronze_app1_ro
+          - <prefix>_<catalog_name>_bronze_app1_ro_pii
+          permissions: ["USE_SCHEMA","SELECT","EXECUTE","READ_VOLUME"]
+        - principals:
+          - <prefix>_<catalog_name>_bronze_app1_rw
+          permissions: ["USE_SCHEMA","SELECT","EXECUTE","READ_VOLUME","CREATE_FUNCTION","CREATE_TABLE","CREATE_VOLUME",
+                        "WRITE_VOLUME","REFRESH","MODIFY","APPLY_TAG"]
+    - name: <catalog_name>.silver_app1
+      grants:
+        - principals:
+            - <prefix>_<catalog_name>_silver_app1_ro
+            - <prefix>_<catalog_name>_silver_app1_ro_pii
+          permissions: ["USE_SCHEMA","SELECT","EXECUTE","READ_VOLUME"]
+        - principals:
+            - <prefix>_<catalog_name>_silver_app1_rw
+          permissions: ["USE_SCHEMA","SELECT","EXECUTE","READ_VOLUME","CREATE_FUNCTION","CREATE_TABLE","CREATE_VOLUME",
+                        "WRITE_VOLUME","REFRESH","MODIFY","APPLY_TAG"]
+    - name: <catalog_name>.gold_app1
+      grants:
+        - principals:
+            - <prefix>_<catalog_name>_gold_app1_ro
+            - <prefix>_<catalog_name>_gold_app1_ro_pii
+          permissions: ["USE_SCHEMA","SELECT","EXECUTE","READ_VOLUME"]
+        - principals:
+            - <prefix>_<catalog_name>_gold_app1_rw
+          permissions: ["USE_SCHEMA","SELECT","EXECUTE","READ_VOLUME","CREATE_FUNCTION","CREATE_TABLE","CREATE_VOLUME",
+                        "WRITE_VOLUME","REFRESH","MODIFY","APPLY_TAG",]
+    - name: <catalog_name>.ml_assets_app1
+      grants:
+        - principals:
+            - <prefix>_<catalog_name>_mlassets_app1_ro
+            - <prefix>_<catalog_name>_mlassets_app1_ro_pii
+          permissions:
+            - USE_SCHEMA
+            - SELECT
+            - EXECUTE
+            - READ_VOLUME
+        - principals:
+            - <prefix>_<catalog_name>_mlassets_app1_rw
+          permissions: ["USE_SCHEMA","SELECT","EXECUTE","READ_VOLUME","CREATE_FUNCTION","CREATE_TABLE","CREATE_VOLUME",
+                        "WRITE_VOLUME","REFRESH","MODIFY","APPLY_TAG"]
