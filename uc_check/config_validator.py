@@ -17,9 +17,9 @@ from azure.mgmt.storage.models import StorageAccount
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.service.catalog import StorageCredentialInfo
 
-from autoconfig.common.logging_utils import get_log
-from autoconfig.common.utils import get_exception
-from autoconfig.validation_models import UcObjectsConfig, DeltaSharingConfig
+from uc_check.common.logging_utils import get_log
+from uc_check.common.utils import get_exception
+from uc_check.validation_models import UcObjectsConfig, DeltaSharingConfig
 
 
 class ConfigValidator:

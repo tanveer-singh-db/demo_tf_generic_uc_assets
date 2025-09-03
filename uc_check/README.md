@@ -46,7 +46,7 @@ python run_config_validator.py \
 You can also use the validator programmatically:
 
 ```python
-from autoconfig.config_validator import ConfigValidator
+from uc_check.config_validator import ConfigValidator
 
 validator = ConfigValidator(
     config_dir="./configs",

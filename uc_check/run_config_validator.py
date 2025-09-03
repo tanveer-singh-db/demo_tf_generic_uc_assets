@@ -8,7 +8,7 @@ import argparse
 import json
 from argparse import ArgumentParser
 
-from autoconfig.config_validator import ConfigValidator
+from uc_check.config_validator import ConfigValidator
 
 parser = argparse.ArgumentParser(description='Validate Unity Catalog configuration')
 parser.add_argument('--config_dir', type=str,required=True, help='Directory Path where .yml/.yaml configuration files are located')

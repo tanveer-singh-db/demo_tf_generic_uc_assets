@@ -36,18 +36,18 @@ stages:
           - script: |
               CONFIG_DIR="${{ parameters.cloudEnvironment }}/${{ parameters.region }}/${{ parameters.workSpaceId }}"
               TFVARS_PATH="$CONFIG_DIR/terraform.tfvars"
-              
+
               echo "Validating configuration files..."
               if [ ! -d "$CONFIG_DIR" ]; then
                 echo "Error: Config directory not found at $CONFIG_DIR"
                 exit 1
               fi
-              
+
               if [ ! -f "$TFVARS_PATH" ]; then
                 echo "Error: terraform.tfvars not found at $TFVARS_PATH"
                 exit 1
               fi
-              
+
               echo "Configuration directory structure validated successfully"
             displayName: 'Validate Configuration Structure'
 
@@ -56,15 +56,15 @@ stages:
           - script: |
               CONFIG_DIR="${{ parameters.cloudEnvironment }}/${{ parameters.region }}/${{ parameters.workSpaceId }}"
               TFVARS_PATH="$CONFIG_DIR/terraform.tfvars"
-              
+
               echo "Extracting workspace_url from terraform.tfvars..."
               WORKSPACE_URL=$(grep -oP 'databricks_workspace_url\s*=\s*"\K[^"]+' "$TFVARS_PATH")
-              
+
               if [ -z "$WORKSPACE_URL" ]; then
                 echo "Error: Could not extract databricks_workspace_url from $TFVARS_PATH"
                 exit 1
               fi
-              
+
               echo "Extracted workspace_url: $WORKSPACE_URL"
               echo "##vso[task.setvariable variable=WORKSPACE_URL]$WORKSPACE_URL"
             displayName: 'Extract Workspace URL'
@@ -73,9 +73,9 @@ stages:
           # Runs the validator against Azure resources and Databricks workspace
           - script: |
               CONFIG_DIR="${{ parameters.cloudEnvironment }}/${{ parameters.region }}/${{ parameters.workSpaceId }}"
-              
+
               echo "Running UC config validation..."
-              cd autoconfig
+              cd uc_check
               python run_config_validator.py \
                 --config_dir "../$CONFIG_DIR" \
                 --workspace_url "$(WORKSPACE_URL)" \

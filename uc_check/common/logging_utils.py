@@ -2,7 +2,7 @@ import logging
 from io import StringIO
 import sys
 
-APP_LOGGER_NAME = 'autoconfig'
+APP_LOGGER_NAME = 'uc_check'
 
 d_log_levels = {
     'debug': logging.DEBUG,
@@ -49,4 +49,3 @@ def get_app_level_logger(
 def get_log(module_name: str = None, log_level: str = 'debug', app_logger_name: str = APP_LOGGER_NAME, log_file=None):
     app_level_logger = get_app_level_logger(logger_name=app_logger_name, log_level=log_level, log_file=log_file)
     return app_level_logger.getChild(module_name) if module_name else app_level_logger
-
