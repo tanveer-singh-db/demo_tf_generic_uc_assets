@@ -1,0 +1,59 @@
+
+#prefix: ts42
+#bu: cib
+#subdomain: cash
+#app_name: app1
+
+base:
+  storage_account: <prefix><bu><subdomain><env>
+  generate_medallion: true
+  catalog_name: <bu>_<subdomain>_<env>
+  schema_name: <data_maturity>_<app_name>
+  catalog_location: <catalog_container>@<storage_account>
+  schema_location: <schema_name>@<storage_account> # or <catalog_container>@<storage_account>/<schema_name>
+
+  catalog_admin_group: <prefix>-<bu>-<subdomain>-<env>-admin
+
+  catalog_user_groups:
+    - <prefix>-<bu>-<subdomain>-<env>-browse
+
+  schema_user_groups:
+    - <prefix>-<bu>-<subdomain>-<env>-<data_maturity>-ro
+    - <prefix>-<bu>-<subdomain>-<env>-<data_maturity>-rw
+    - <prefix>-<bu>-<subdomain>-<env>-<data_maturity>-ro-pii
+
+  catalog_admin_grants: [ "MANAGE", "ALL_PRIVILEGES" ]
+
+  schema_read_only_grants:
+    - "USE_SCHEMA"
+    - "SELECT"
+    - "EXECUTE"
+    - "READ_VOLUME"
+
+  schema_read_write_grants:
+    - "USE_SCHEMA"
+    - "SELECT"
+    - "EXECUTE"
+    - "READ_VOLUME"
+    - "CREATE_FUNCTION"
+    - "CREATE_TABLE"
+    - "CREATE_VOLUME"
+    - "WRITE_VOLUME"
+    - "REFRESH"
+    - "MODIFY"
+    - "APPLY_TAG"
+
+
+dev:
+  storage_account: ts42cibccdev
+  catalog_container: base
+
+staging:
+  storage_account: ts42cibccstaging
+  catalog_container: base
+
+prod:
+  storage_account: ts42cibccprod
+  catalog_container: base
+
+

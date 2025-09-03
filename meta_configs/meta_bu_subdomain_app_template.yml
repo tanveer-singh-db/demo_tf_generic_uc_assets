@@ -1,0 +1,53 @@
+
+base:
+  storage_account: <prefix><bu><subdomain><env>
+  catalog_container: base
+  generate_medallion: true
+  data_maturity_levels: ["bronze", "silver", "gold", "ml_assets"]
+
+  catalog_name: <bu>_<subdomain>_<env>
+  schema_name: <data_maturity>_<app_name>
+  catalog_location: <catalog_container>@<storage_account>
+  schema_location: <schema_name>@<storage_account> # or <catalog_container>@<storage_account>/<schema_name>
+
+  catalog_admin_group: <prefix>-<bu>-<subdomain>-<env>-admin
+
+  catalog_user_groups:
+    - <prefix>-<bu>-<subdomain>-<env>-browse
+
+  schema_user_groups:
+    - <prefix>-<bu>-<subdomain>-<env>-<data_maturity>-ro
+    - <prefix>-<bu>-<subdomain>-<env>-<data_maturity>-rw
+    - <prefix>-<bu>-<subdomain>-<env>-<data_maturity>-ro-pii
+
+  catalog_admin_grants: [ "MANAGE", "ALL_PRIVILEGES" ]
+
+  schema_read_only_grants:
+    - "USE_SCHEMA"
+    - "SELECT"
+    - "EXECUTE"
+    - "READ_VOLUME"
+
+  schema_read_write_grants:
+    - "USE_SCHEMA"
+    - "SELECT"
+    - "EXECUTE"
+    - "READ_VOLUME"
+    - "CREATE_FUNCTION"
+    - "CREATE_TABLE"
+    - "CREATE_VOLUME"
+    - "WRITE_VOLUME"
+    - "REFRESH"
+    - "MODIFY"
+    - "APPLY_TAG"
+
+
+dev: ~
+
+stg: ~
+
+prod: ~
+
+
+
+
