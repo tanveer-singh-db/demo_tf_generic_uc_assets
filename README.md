@@ -1,8 +1,23 @@
-# Terraform UC Deployment
+# Databricks Unity Catalog Terraform Deployment
 
-This repository provides a configurable and modular Terraform setup to deploy [Databricks Unity Catalog (UC)] resources across workspaces and metastores in a standardized, reusable, and scalable manner.
+> **Deploy Unity Catalog resources across multiple Databricks workspaces with automated configuration generation and validation**
 
-##  Overview
+This repository provides a complete solution for deploying Databricks Unity Catalog (UC) resources using Terraform, with automated config generation and pre-deployment validation tools.
+
+## Table of Contents
+- [Overview](#overview)
+- [Key Concepts](#key-concepts)
+- [Quick Start](#quick-start)
+- [What You Get](#what-you-get)
+- [Directory Structure](#directory-structure)
+- [Three Main Tools](#three-main-tools)
+- [Prerequisites](#prerequisites)
+- [Detailed Usage](#detailed-usage)
+- [Configuration Structure](#configuration-structure)
+- [FAQ](#faq)
+- [Command Reference](#command-reference)
+
+## Overview
 
 Unity Catalog is Databricks’ unified governance solution for all data and AI assets. This module automates:
 - Creation of catalogs, schemas, tables, external locations
@@ -25,65 +40,199 @@ The project supports multi-cloud and multi-metastore deployments using a config-
 
 ---
 
-##  Use Cases
+## Quick Start
 
-- Automate provisioning of Unity Catalog resources across multiple Databricks workspaces
-- Apply consistent grants and access policies across catalogs and schemas
-- Integrate Delta Sharing with internal and external recipients
-- Bootstrap new data products and environments with minimal manual setup
+### 1. Generate Configuration (First Time Setup)
+```bash
+# Generate UC configuration from templates
+cd autoconfig/
+python run_autoconfig.py \
+  --bu finance \
+  --sub_domain reporting \
+  --workspace_info 6208
 
-## Modules
+# With dynamic user schemas from Databricks groups
+python run_autoconfig.py \
+  --bu finance \
+  --sub_domain reporting \
+  --workspace_info 6208 \
+  --databricks_workspace_url "https://adb-1234567890123456.78.azuredatabricks.net" \
+  --databricks_token $DATABRICKS_WS_TOKEN \
+  --generate_user_schemas \
+  --user_groups "data-scientists" "data-engineers"
+```
 
-The system is composed of loosely coupled modules orchestrated through configuration and Terraform `for_each` constructs.
-A single execution plan can:
-- Create external_location, catalogs, schemas and tables
-- Set grants at both schema and catalog level
-- Configure Delta Sharing shares and recipients
-- Apply workspace bindings (only if workspace/metastore IDs match)
+### 2. Validate Configuration (Recommended)
+```bash
+# Validate against Azure and Databricks before deployment
+cd uc_check/
+python run_uc_validator.py \
+  --config_dir ../dev/southeastasia/2178 \
+  --workspace_url https://your-workspace.cloud.databricks.com \
+  --subscription_id xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+```
 
+### 3. Deploy with Terraform
+```bash
+cd template/
+terraform init -reconfigure -backend-config=../dev/southeastasia/2178/config.tfbackend
+terraform plan -var-file=../dev/southeastasia/2178/terraform.tfvars
+terraform apply -var-file=../dev/southeastasia/2178/terraform.tfvars
+```
+
+## What You Get
+
+This solution automatically creates and manages:
+
+✅ **Unity Catalog Objects**: Catalogs, schemas, tables, external locations
+✅ **Access Control**: Grants and permissions across all resources
+✅ **Delta Sharing**: Recipients, shares, and sharing permissions
+✅ **Workspace Bindings**: Link catalogs to specific workspaces
+✅ **Multi-Environment Support**: Dev, QA, Prod with region-specific configs
+✅ **Configuration Validation**: Pre-deployment checks for Azure resources and UC requirements
+
+## Directory Structure
+
+```
+📂 project-root/
+├── 📁 template/           # Main Terraform deployment
+├── 📁 autoconfig/         # Configuration generation tool
+├── 📁 uc_check/          # Pre-deployment validation
+├── 📁 meta_configs/      # Template configurations
+├── 📁 sample_config_templates/  # Example config files
+└── 📁 dev/qa/prod/       # Environment-specific configs
+    └── 📁 {region}/      # Region-specific configs
+        └── 📁 {workspace}/  # Workspace-specific configs
+```
+
+## 3 Main Tools
+
+### 1. Terraform Deployment (`template/`)
+**Purpose**: Deploy Unity Catalog resources to Databricks workspaces
+
+**What it does**:
+- Creates catalogs, schemas, tables, and external locations
+- Applies grants and access policies
+- Sets up Delta Sharing recipients and shares
+- Binds catalogs to specific workspaces
+
+**Key features**:
+- Config-driven deployment using YAML files
+- Multi-environment and multi-workspace support
+- Automatic workspace-metastore matching
+
+### 2. Configuration Generator (`autoconfig/`)
+**Purpose**: Generate standardized UC configurations from templates
+
+**What it does**:
+- Creates UC object configurations from meta templates
+- Generates user schemas dynamically from Databricks groups
+
+**Key features**:
+- Template-based config generation
+- Dynamic user schema creation
+- Variable substitution for standardized naming
+- Multi-environment support
+
+### 3. Configuration Validator (`uc_check/`)
+**Purpose**: Validate configurations before deployment
+
+**Key features**:
+- Pre-deployment validation
+
+## Prerequisites
+
+### Azure Resources
+- **Storage Accounts and Containers**: Must be created before UC object deployment
+- **Storage Credentials**: Must exist in Databricks before deployment
+- **Metastore Assignment**: Workspace must have metastore assigned
+
+### Service Principal Permissions
+The service principal must have these **metastore-level** permissions:
+- `CREATE_CATALOG`, `CREATE_SCHEMA`, `CREATE_EXTERNAL_LOCATION`
+- `CREATE_PROVIDER`, `CREATE_RECIPIENT`, `CREATE_SHARE`
+- `USE_PROVIDER`, `USE_RECIPIENT`, `USE_SHARE`, `SET_SHARE_PERMISSION`
+- Optional: `CREATE_CONNECTION`, `CREATE_CLEAN_ROOM`, `USE_MARKETPLACE_ASSETS`
+
+### Required Parameters
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `databricks_workspace_url` | Databricks workspace URL | `https://adb-123.azuredatabricks.net` |
+| `deployment_tenant_id` | Azure tenant ID | `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx` |
+| `cloudEnvironment` | Environment directory | `dev`, `qa`, `prod` |
+| `region` | Region directory | `southeastasia`, `westeurope` |
+| `workspaceInfo` | Workspace directory | `2178`, `6208` |
+
+## Detailed Usage
+
+### Use Autoconfig Tool (Recommended for New Setups)
+```bash
+# Generate configuration from templates
+cd autoconfig/
+python run_autoconfig.py --bu finance --sub_domain reporting --workspace_info 6208
+
+# Then deploy
+cd ../template/
+terraform init -reconfigure -backend-config=../dev/southeastasia/6208/config.tfbackend
+terraform apply -var-file=../dev/southeastasia/6208/terraform.tfvars
+```
+
+
+## Configuration Structure
+
+Your configuration directory should contain:
+- `uc_objects.yml` - Defines catalogs, schemas, tables, external locations
+- `uc_object_grants.yml` - Permission configurations
+- `workspace_binding.yml` - Workspace-to-catalog bindings
+- `delta_shares.yml` - Delta sharing recipients and shares
+- `terraform.tfvars` - Terraform variable definitions
+- `config.tfbackend` - Backend configuration for state management
+
+## FAQ
+**Q: How do I add user schemas dynamically?**
+A: Use the autoconfig tool with `--generate_user_schemas` and specify Databricks groups with `--user_groups`.
+
+**Q: What happens if I run deployment on an existing setup?**
+A: Terraform will show a plan of changes. Existing resources won't be destroyed unless explicitly removed from config.
+
+**Q: Can I customize the naming conventions?**
+A: Yes, modify the meta templates in `meta_configs/` or use the template variables in autoconfig.
+
+**Q: How do I validate my configuration before deployment?**
+A: Use the UC validator: `cd uc_check/ && python run_uc_validator.py --config_dir ../path/to/config`
+
+## Command Reference
+
+### Configuration Generation
+```bash
+cd autoconfig/
+python run_autoconfig.py --bu <business_unit> --sub_domain <subdomain> --workspace_info <workspace_id>
+```
+
+### Configuration Validation
+```bash
+cd uc_check/
+python run_uc_validator.py --config_dir <path> --workspace_url <url> --subscription_id <id>
+```
+
+### Terraform Deployment
+```bash
+cd template/
+terraform init -reconfigure -backend-config=../<env>/<region>/<workspace>/config.tfbackend
+terraform plan -var-file=../<env>/<region>/<workspace>/terraform.tfvars
+terraform apply -var-file=../<env>/<region>/<workspace>/terraform.tfvars
+```
+
+### Terraform Utilities
+```bash
+terraform fmt        # Format all files
+terraform validate             # Validate configuration
+terraform destroy             # Remove all resources
+```
 
 ---
-## Pre-Requisites
 
-- **Storage Accounts** and **Containers** must be created prior to creating catalogs and schemas
-- **Storage Credentials** must be pre-created prior to creation of the Unity Catalog Objects
-- The **Service Account** or **Service Principal** being used for this terraform deployment,
-  must have the following permissions at the **Metastore** level:
-
-    * CREATE_CATALOG
-    * CREATE_SCHEMA
-    * CREATE_EXTERNAL_LOCATION
-    * CREATE_PROVIDER
-    * CREATE_RECIPIENT
-    * CREATE_SHARE
-    * USE_PROVIDER
-    * USE_RECIPIENT
-    * USE_SHARE
-    * SET_SHARE_PERMISSION
-    * (Optional) CREATE_CONNECTION, CREATE_CLEAN_ROOM, USE_MARKETPLACE_ASSETS
-
-
-
-## Planned checks for pre-requisites
-1. Check if metastore is assigned to the workspace.
-2. Check if storage_accounts and containers are created prior to deployment.
-3. Check if the storage_credential provided has been created prior to deployment.
-3. Check if the container@storage_account being used for a UC Object (Catalog, Schema) has already been used for a different UC Object.
-4. Check if provided config structure matches the expected structure by the module.
-
-## Parameters Required
-
-- databricks_workspace_url : https://<workspace>.azuredatabricks.net
-- deployment_tenant_id : Azure tenant ID where the databricks workspace has been deployed
-- cloudEnvironment: The cloud environment dir where the config yaml files exist, i.e. dev, qa, prod
-- region: The region dir where the config yaml files exist, i.e. southeastasia, westeurope
-- workspaceInfo: Refers to the workspace info dir, where the config yaml files exist
-
-## Usage
-
-```shell
-terraform init -reconfigure -backend-config=../<cloudEnvironment>/<region>/<workspaceInfo>/config.tfbackend
-```
-```shell
-terraform plan -var-file=../<cloudEnvironment>/<region>/<workspaceInfo>/terraform.tfvars
-```
+## Additional Documentation
+- [Autoconfig Tool Details](autoconfig/README.md)
+- [UC Validator Details](uc_check/README.md)
+- [Terraform Module Details](template/README.md)
