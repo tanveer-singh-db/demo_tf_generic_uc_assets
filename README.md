@@ -34,7 +34,7 @@ The project supports multi-cloud and multi-metastore deployments using a config-
 
 ## Modules
 
-The system is composed of loosely coupled modules orchestrated through configuration and Terraform `for_each` constructs. 
+The system is composed of loosely coupled modules orchestrated through configuration and Terraform `for_each` constructs.
 A single execution plan can:
 - Create external_location, catalogs, schemas and tables
 - Set grants at both schema and catalog level
@@ -47,7 +47,7 @@ A single execution plan can:
 
 - **Storage Accounts** and **Containers** must be created prior to creating catalogs and schemas
 - **Storage Credentials** must be pre-created prior to creation of the Unity Catalog Objects
-- The **Service Account** or **Service Principal** being used for this terraform deployment, 
+- The **Service Account** or **Service Principal** being used for this terraform deployment,
   must have the following permissions at the **Metastore** level:
 
     * CREATE_CATALOG
