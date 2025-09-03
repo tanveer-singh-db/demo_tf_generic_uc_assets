@@ -14,7 +14,12 @@ except ImportError:
     DATABRICKS_SDK_AVAILABLE = False
 
 class UCConfigGenerator:
-    """Main generator for Unity Catalog configurations from meta templates."""
+    """
+    Main generator for Unity Catalog configurations from meta templates.
+    
+    This class generates Unity Catalog configuration YAML files from meta templates,
+    supporting variable substitution and dynamic user schema generation from Databricks groups.
+    """
     def __init__(self,
                  bu:str,
                  sub_domain:str,
@@ -32,7 +37,26 @@ class UCConfigGenerator:
                  user_schema_template: str = "<user_name>_schema",
                  databricks_token: Optional[str] = None
                  ):
-        """Initialize generator with parameters and load meta configuration."""
+        """
+        Initialize generator with parameters and load meta configuration.
+        
+        Args:
+            bu: Business unit name for config generation
+            sub_domain: Subdomain name for config generation
+            meta_config_root: Path to directory containing meta configuration templates
+            meta_file_name: Name of the meta template file to use
+            cloud_environment: Cloud environment (dev, qa, prod)
+            region: Azure region (e.g., westeurope, southeastasia)
+            workspace_info: Workspace identifier for config path structure
+            subscription_id: Azure subscription ID
+            databricks_workspace_url: Databricks workspace URL
+            output_root: Optional root directory for generated files (defaults to current directory)
+            app_name: Optional application name for multi-app deployments
+            generate_user_schemas: Whether to generate user schemas from Databricks groups
+            user_groups: List of Databricks group names to read users from
+            user_schema_template: Template string for user schema names (supports <user_name> variable)
+            databricks_token: Databricks API token for group member retrieval
+        """
         self.log = get_log("generator")
         self.bu = bu
         self.sub_domain = sub_domain
