@@ -26,11 +26,10 @@ class ConfigValidator:
     """
         Validates Unity Catalog configuration against Azure resources and Databricks workspace.
 
-        This class performs comprehensive validation including:
+        This class performs validation including:
         - Configuration file structure validation
-        - Azure storage resource existence checks
+        - Azure storage/container resource existence checks
         - Databricks Unity Catalog object validation
-        - Container uniqueness verification
         """
     def __init__(self, config_dir: str,
                  subscription_id: str,
@@ -48,7 +47,6 @@ class ConfigValidator:
 
         self.subscription_id = subscription_id
         self.workspace_url = workspace_url
-        # self.azure_credential = DefaultAzureCredential()
         self.azure_credential =  DefaultAzureCredential(
             exclude_interactive_browser_credential=False,
             exclude_managed_identity_credential=False
@@ -62,7 +60,9 @@ class ConfigValidator:
         self._set_workspace_client()
 
     def _set_workspace_client(self):
-        """Initialize Databricks WorkspaceClient with Azure CLI authentication."""
+        """
+        Initialize Databricks WorkspaceClient
+        """
         self.db_client = WorkspaceClient(
             host=self.workspace_url,
             auth_type="azure-cli",
@@ -70,11 +70,7 @@ class ConfigValidator:
 
     def _set_config(self):
         """
-        Load and merge all YAML configuration files from the config directory.
-
-        Raises:
-            FileNotFoundError: If config directory doesn't exist
-            RuntimeError: If any YAML file fails to load
+        Load and merge all YAML/YML configuration files from the config directory.
         """
         config_path = pathlib.Path(self.config_dir)
         # Validate config directory exists
@@ -101,30 +97,26 @@ class ConfigValidator:
 
     def _validate_config_structure(self) -> bool:
         """
-        Validate configuration structure using Pydantic models.
-
-        Returns:
-            bool: True if validation succeeds, False otherwise
+        Validate Unity Catalog configuration attributes and structure using Pydantic models.
         """
         try:
-            # Define nested Pydantic models for structure validation
-            # Define Pydantic models for UC Objects
-
-
-            # Root configuration model
             class RootConfig(BaseModel):
                 """Root configuration model combining all validation models."""
                 uc_objects_config: Optional[UcObjectsConfig] = None
                 delta_sharing_config: Optional[DeltaSharingConfig] = None
 
             RootConfig(**self.merged_config)
+
+            # If validation succeeds, no exception is raised, return True
             return True
         except ValidationError as e:
             self.errors.append(f"Config structure validation failed: {str(e)}")
             return False
 
     def _check_metastore_assignment(self):
-        """Verify metastore is assigned to workspace"""
+        """
+        Verify metastore is assigned to workspace
+        """
         try:
             if not self.db_client.metastores.current():
                 self.errors.append("No metastore assigned to this workspace")
@@ -132,7 +124,9 @@ class ConfigValidator:
             self.errors.append(f"Metastore check failed: {str(e)}")
 
     def _check_storage_resources(self):
-        """Validate storage accounts and containers exist in Azure"""
+        """
+        Validate storage accounts and containers exist in Azure
+        """
         storage_accounts = set()
         containers = set()
 
@@ -159,7 +153,9 @@ class ConfigValidator:
                 self.errors.append(f"Container does not exist: {container}@{account}")
 
     def _check_storage_credentials(self):
-        """Verify all referenced storage credentials exist in Unity Catalog."""
+        """
+        Verify all referenced storage credentials exist in Unity Catalog.
+        """
         try:
             existing_creds = [c.name for c in self.db_client.storage_credentials.list()]
 
@@ -171,7 +167,9 @@ class ConfigValidator:
             self.errors.append(f"Credential check failed: {str(e)}")
 
     def _check_container_uniqueness(self):
-        """Ensure containers aren't reused across different UC objects."""
+        """
+        Ensure containers aren't reused across different UC objects.
+        """
         for section in ['catalogs', 'schemas']:
             for item in self.merged_config.get(section, []):
                 url = item.get('storage_root', '')
@@ -220,8 +218,6 @@ class ConfigValidator:
         Args:
             account_name: Name of the storage account to check
 
-        Returns:
-            bool: True if account exists, False otherwise
         """
         try:
             for account in self.storage_client.storage_accounts.list():
@@ -239,9 +235,6 @@ class ConfigValidator:
         Args:
             account_name: Storage account name
             container_name: Container name to check
-
-        Returns:
-            bool: True if container exists, False otherwise
         """
         try:
             # Find the storage account and extract its resource group
@@ -267,8 +260,6 @@ class ConfigValidator:
         """
         Execute all validation checks in sequence.
 
-        Returns:
-            List of error messages (empty list indicates successful validation)
         """
         self.errors = []
 
