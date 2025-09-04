@@ -24,19 +24,14 @@ Unity Catalog is Databricks’ unified governance solution for all data and AI a
 - Managing storage credentials, workspace bindings, and grants
 - Delta sharing configurations and recipient management
 
-The project supports multi-cloud and multi-metastore deployments using a config-driven approach with minimal hardcoding.
+The project using a config-driven approach with minimal hardcoding.
 
 ---
 
 ## Key Concepts
 - Config-driven: Deployment controlled by *.tfvars or YAML-converted inputs
 
-- Metastore-aware: Resources are filtered and applied only if workspace-metastore match
-
-- Composable: Modules can be reused or omitted selectively
-
-- Scalable: Designed for multi-workspace, multi-region setups
-
+- Resuable: Modules can be reused
 
 ---
 
@@ -45,7 +40,6 @@ The project supports multi-cloud and multi-metastore deployments using a config-
 ### 1. Generate Configuration (First Time Setup)
 ```bash
 # Generate UC configuration from templates
-cd autoconfig/
 python run_autoconfig.py \
   --bu finance \
   --sub_domain reporting \
@@ -66,7 +60,7 @@ python run_autoconfig.py \
 ```bash
 # Validate against Azure and Databricks before deployment
 cd uc_check/
-python run_uc_validator.py \
+python run_config_validator.py \
   --config_dir ../dev/southeastasia/2178 \
   --workspace_url https://your-workspace.cloud.databricks.com \
   --subscription_id xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
@@ -84,12 +78,12 @@ terraform apply -var-file=../dev/southeastasia/2178/terraform.tfvars
 
 This solution automatically creates and manages:
 
-✅ **Unity Catalog Objects**: Catalogs, schemas, tables, external locations
-✅ **Access Control**: Grants and permissions across all resources
-✅ **Delta Sharing**: Recipients, shares, and sharing permissions
-✅ **Workspace Bindings**: Link catalogs to specific workspaces
-✅ **Multi-Environment Support**: Dev, QA, Prod with region-specific configs
-✅ **Configuration Validation**: Pre-deployment checks for Azure resources and UC requirements
+- **Unity Catalog Objects**: Catalogs, schemas, tables, external locations
+- **Access Control**: Grants and permissions across all resources
+- **Delta Sharing**: Recipients, shares, and sharing permissions
+- **Workspace Bindings**: Link catalogs to specific workspaces
+- **Multi-Environment Support**: Dev, QA, Prod with region-specific configs
+- **Configuration Validation**: Pre-deployment checks for Azure resources and UC requirements
 
 ## Directory Structure
 
@@ -124,21 +118,17 @@ This solution automatically creates and manages:
 ### 2. Configuration Generator (`autoconfig/`)
 **Purpose**: Generate standardized UC configurations from templates
 
-**What it does**:
-- Creates UC object configurations from meta templates
-- Generates user schemas dynamically from Databricks groups
+Automates the creation of customized Unity Catalog configuration files from meta templates, enabling users to control Terraform resource deployment through config modifications.
 
-**Key features**:
-- Template-based config generation
-- Dynamic user schema creation
-- Variable substitution for standardized naming
-- Multi-environment support
+**See [autoconfig/README.md](autoconfig/README.md) for detailed usage instructions and examples**
 
 ### 3. Configuration Validator (`uc_check/`)
 **Purpose**: Validate configurations before deployment
 
 **Key features**:
 - Pre-deployment validation
+
+**See [uc_check/README.md](uc_check/README.md) for detailed validation features and usage**
 
 ## Prerequisites
 
@@ -167,7 +157,7 @@ The service principal must have these **metastore-level** permissions:
 
 ### Use Autoconfig Tool (Recommended for New Setups)
 ```bash
-# Generate configuration from templates
+# Generate configuration from templates - see autoconfig/README.md for all options
 cd autoconfig/
 python run_autoconfig.py --bu finance --sub_domain reporting --workspace_info 6208
 
@@ -199,7 +189,7 @@ A: Terraform will show a plan of changes. Existing resources won't be destroyed 
 A: Yes, modify the meta templates in `meta_configs/` or use the template variables in autoconfig.
 
 **Q: How do I validate my configuration before deployment?**
-A: Use the UC validator: `cd uc_check/ && python run_uc_validator.py --config_dir ../path/to/config`
+A: Use the UC validator: `cd uc_check/ && python run_config_validator.py --config_dir ../path/to/config`
 
 ## Command Reference
 
@@ -207,12 +197,14 @@ A: Use the UC validator: `cd uc_check/ && python run_uc_validator.py --config_di
 ```bash
 cd autoconfig/
 python run_autoconfig.py --bu <business_unit> --sub_domain <subdomain> --workspace_info <workspace_id>
+# See autoconfig/README.md for all parameters and advanced options
 ```
 
 ### Configuration Validation
 ```bash
 cd uc_check/
-python run_uc_validator.py --config_dir <path> --workspace_url <url> --subscription_id <id>
+python run_config_validator.py --config_dir <path> --workspace_url <url> --subscription_id <id>
+# See uc_check/README.md for detailed validation features
 ```
 
 ### Terraform Deployment
@@ -233,6 +225,6 @@ terraform destroy             # Remove all resources
 ---
 
 ## Additional Documentation
-- [Autoconfig Tool Details](autoconfig/README.md)
-- [UC Validator Details](uc_check/README.md)
-- [Terraform Module Details](template/README.md)
+- **[Autoconfig Tool Details](autoconfig/README.md)**
+- **[UC Validator Details](uc_check/README.md)**
+- **[Terraform Module Details](template/README.md)**

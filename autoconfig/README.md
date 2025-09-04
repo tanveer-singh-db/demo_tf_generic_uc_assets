@@ -1,12 +1,10 @@
-## Config Generation Tool
+## Customized Terraform YAML Configuration Generation Tool
 
-The `run_autoconfig.py` script automates the generation of Unity Catalog configurations using meta templates and optional dynamic user schema generation from Databricks groups.
+The `run_autoconfig.py` script automates the generation of customized Unity Catalog configuration files from meta templates, enabling users to control Terraform resource deployment through simple config modifications without changing Terraform code directly.
 
 ### Features
-- **Template-based Config Generation**: Uses meta configuration templates to generate standardized UC objects
+- **Template-based Config Generation**: Uses meta configuration templates to generate standardized UC objects YAML config for downstream Terraform deployment.
 - **Dynamic User Schema Generation**: Automatically creates personal schemas for users from specified Databricks groups
-- **Multi-Group Support**: Combines users from multiple Databricks groups with deduplication
-- **Flexible Naming**: Configurable schema naming templates with variable substitution
 
 ### Arguments
 
@@ -16,7 +14,7 @@ The `run_autoconfig.py` script automates the generation of Unity Catalog configu
 - `--workspace_info` - Unique workspace ID (e.g., "6208")
 
 #### Optional Arguments
-- `--app_name` - Application name for multi-app deployments
+- `--app_name` - Application name
 - `--meta_config_root` - Path to meta_configs directory (default: "./meta_configs")
 - `--meta_file_name` - Meta template file name (default: "meta_bu_subdomain_app_template.yml")
 - `--cloud_environment` - Environment name (default: "dev")
@@ -41,7 +39,7 @@ python run_autoconfig.py \
   --workspace_info 6208
 ```
 
-#### Advanced Usage with User Schema Generation
+#### Usage with User Schema Generation
 ```bash
 python run_autoconfig.py \
   --bu finance \
@@ -55,7 +53,7 @@ python run_autoconfig.py \
   --user_schema_template "<prefix>_<user_name>_schema"
 ```
 
-#### Custom Template and Output Location
+#### Assign a Custom Template and Output Location
 ```bash
 python run_autoconfig.py \
   --bu marketing \

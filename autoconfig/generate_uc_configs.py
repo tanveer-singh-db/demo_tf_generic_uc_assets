@@ -15,8 +15,6 @@ except ImportError:
 
 class UCConfigGenerator:
     """
-    Main generator for Unity Catalog configurations from meta templates.
-    
     This class generates Unity Catalog configuration YAML files from meta templates,
     supporting variable substitution and dynamic user schema generation from Databricks groups.
     """
@@ -39,7 +37,7 @@ class UCConfigGenerator:
                  ):
         """
         Initialize generator with parameters and load meta configuration.
-        
+
         Args:
             bu: Business unit name for config generation
             sub_domain: Subdomain name for config generation
@@ -80,7 +78,9 @@ class UCConfigGenerator:
         self.tfvars = {}
 
     def load_meta_config(self):
-        """Load and merge meta configuration from YAML file."""
+        """
+        Load and merge meta configuration from YAML file.
+        """
         meta_file_path = self.meta_config_root / self.meta_file_name
         if not meta_file_path.exists():
             raise FileNotFoundError(f"Meta file not found: {meta_file_path}")
@@ -102,11 +102,16 @@ class UCConfigGenerator:
             raise Exception(e)
 
     def render_string(self, template: str, context: dict) -> str:
-        """Replace template variables in strings with context values."""
+        """
+        Replace template variables in strings with context values.
+        template variables format: <variable_name>
+        """
         return re.sub(r"<([^>]+)>", lambda m: str(context.get(m.group(1), m.group(0))), template)
 
     def sanitize_user_name(self, user_name: str) -> str:
-        """Convert user name/email to valid Databricks schema name"""
+        """
+        Convert user name/email to valid Databricks schema name
+        """
         # Remove domain from email addresses
         if "@" in user_name:
             user_name = user_name.split("@")[0]
@@ -122,7 +127,9 @@ class UCConfigGenerator:
         return sanitized.lower()
 
     def fetch_all_group_members(self) -> List[str]:
-        """Fetch members from all configured Databricks groups"""
+        """
+        Fetch members from all configured Databricks groups
+        """
         if not DATABRICKS_SDK_AVAILABLE:
             self.log.warning("Databricks SDK not available. Cannot fetch group members.")
             return []
@@ -197,8 +204,10 @@ class UCConfigGenerator:
             return []
 
     def build_context(self):
-        """Build context dictionary with all template variables and configurations."""
-        prefix = "ts42"  # or make this another CLI arg if needed
+        """
+        Build context dictionary with all template variables and configurations.
+        """
+        prefix = "ts42"
         ctx = {
             "prefix": prefix,
             "bu": self.bu,
@@ -246,7 +255,9 @@ class UCConfigGenerator:
         return ctx
 
     def generate_user_schemas(self) -> List[dict]:
-        """Generate schema configurations for all users from configured groups"""
+        """
+        Generate schema configurations for all users from configured groups
+        """
         if not self.generate_user_schemas_flag:
             return []
 
@@ -299,7 +310,9 @@ class UCConfigGenerator:
         return user_schemas
 
     def generate_uc_objects(self):
-        """Generate Unity Catalog objects configuration (catalogs, schemas, external locations)."""
+        """
+        Generate Unity Catalog objects configuration (catalogs, schemas, external locations).
+        """
         tiers = ["bronze", "silver", "gold"] if self.ctx.get("generate_medallion") else []
         tiers.append("mlassets")
 
@@ -354,7 +367,9 @@ class UCConfigGenerator:
         }
 
     def generate_uc_grants(self):
-        """Generate access grants configuration for catalogs and schemas."""
+        """
+        Generate access grants configuration for catalogs and schemas.
+        """
         tiers = ["bronze", "silver", "gold"] if self.ctx.get("generate_medallion") else []
         tiers.append("mlassets")
 
@@ -364,7 +379,8 @@ class UCConfigGenerator:
             schema_name = self.render_string(self.meta["schema_name"], self.ctx)
             fqn = f"{self.ctx['catalog_name']}.{schema_name}"
             grants = []
-            for principal in self.ctx.get("schema_user_groups", []):
+            for principal_template in self.meta.get("schema_user_groups", []):
+                principal = self.render_string(principal_template, self.ctx)
                 perms = (
                     self.ctx["schema_read_write_grants"] if "rw" in principal else self.ctx["schema_read_only_grants"]
                 )
@@ -386,7 +402,9 @@ class UCConfigGenerator:
         }
 
     def generate_tfvars(self):
-        """Generate Terraform variables file content."""
+        """
+        Generate Terraform variables file content.
+        """
         return {
             "deployment_subscription_id": self.ctx["subscription_id"],
             "databricks_workspace_url": self.ctx["databricks_workspace_url"],
@@ -400,7 +418,9 @@ class UCConfigGenerator:
         }
 
     def write_output_files(self):
-        """Write all generated configurations to output files."""
+        """
+        Write all generated configurations to output files.
+        """
         out_path = self.output_root / self.ctx["env"] / self.ctx["region"] / self.ctx["workspace_info"] /"test"
         out_path.mkdir(parents=True, exist_ok=True)
         (out_path / "uc_objects.yml").write_text(yaml.dump(self.uc_objects, sort_keys=False))
@@ -411,7 +431,9 @@ class UCConfigGenerator:
         print(f"✅ Files written to {out_path}")
 
     def run(self):
-        """Execute the complete generation workflow."""
+        """
+        Execute the complete generation workflow.
+        """
         self.uc_objects = self.generate_uc_objects()
         self.uc_grants = self.generate_uc_grants()
         self.tfvars = self.generate_tfvars()
