@@ -1,8 +1,6 @@
 # Databricks Unity Catalog Terraform Deployment
 
-> **Deploy Unity Catalog resources across multiple Databricks workspaces with automated configuration generation and validation**
-
-This repository provides a complete solution for deploying Databricks Unity Catalog (UC) resources using Terraform, with automated config generation and pre-deployment validation tools.
+This repository provides a solution for deploying Databricks Unity Catalog (UC) resources using Terraform, with automated config generation and pre-deployment validation tools.
 
 ## Table of Contents
 - [Overview](#overview)
@@ -24,7 +22,7 @@ Unity Catalog is Databricks’ unified governance solution for all data and AI a
 - Managing storage credentials, workspace bindings, and grants
 - Delta sharing configurations and recipient management
 
-The project using a config-driven approach with minimal hardcoding.
+The project using a config-driven approach.
 
 ---
 
@@ -56,10 +54,9 @@ python run_autoconfig.py \
   --user_groups "data-scientists" "data-engineers"
 ```
 
-### 2. Validate Configuration (Recommended)
+### 2. Validate Configuration - UC Check
 ```bash
 # Validate against Azure and Databricks before deployment
-cd uc_check/
 python run_config_validator.py \
   --config_dir ../dev/southeastasia/2178 \
   --workspace_url https://your-workspace.cloud.databricks.com \
@@ -76,14 +73,11 @@ terraform apply -var-file=../dev/southeastasia/2178/terraform.tfvars
 
 ## What You Get
 
-This solution automatically creates and manages:
-
 - **Unity Catalog Objects**: Catalogs, schemas, tables, external locations
 - **Access Control**: Grants and permissions across all resources
 - **Delta Sharing**: Recipients, shares, and sharing permissions
 - **Workspace Bindings**: Link catalogs to specific workspaces
-- **Multi-Environment Support**: Dev, QA, Prod with region-specific configs
-- **Configuration Validation**: Pre-deployment checks for Azure resources and UC requirements
+- **Configuration Validation**: Pre-deployment UC checks for Azure resources and UC requirements
 
 ## Directory Structure
 
@@ -101,7 +95,23 @@ This solution automatically creates and manages:
 
 ## 3 Main Tools
 
-### 1. Terraform Deployment (`template/`)
+### 1. TF UC YAML Configuration Generator (`autoconfig/`)
+**Purpose**: Generate standardized UC configurations from templates
+
+Automates the creation of customized Unity Catalog configuration files from meta templates, enabling users to control Terraform resource deployment through config modifications.
+
+**See [autoconfig/README.md](autoconfig/README.md) for detailed usage instructions and examples**
+
+### 2. Configuration Validator (`uc_check/`)
+**Purpose**: Validate TF UC YAML configurations before deployment
+
+**Key features**:
+- Pre-deployment validation
+
+**See [uc_check/README.md](uc_check/README.md) for detailed validation features and usage**
+
+
+### 3. Terraform Deployment (`template/`)
 **Purpose**: Deploy Unity Catalog resources to Databricks workspaces
 
 **What it does**:
@@ -110,25 +120,6 @@ This solution automatically creates and manages:
 - Sets up Delta Sharing recipients and shares
 - Binds catalogs to specific workspaces
 
-**Key features**:
-- Config-driven deployment using YAML files
-- Multi-environment and multi-workspace support
-- Automatic workspace-metastore matching
-
-### 2. Configuration Generator (`autoconfig/`)
-**Purpose**: Generate standardized UC configurations from templates
-
-Automates the creation of customized Unity Catalog configuration files from meta templates, enabling users to control Terraform resource deployment through config modifications.
-
-**See [autoconfig/README.md](autoconfig/README.md) for detailed usage instructions and examples**
-
-### 3. Configuration Validator (`uc_check/`)
-**Purpose**: Validate configurations before deployment
-
-**Key features**:
-- Pre-deployment validation
-
-**See [uc_check/README.md](uc_check/README.md) for detailed validation features and usage**
 
 ## Prerequisites
 
