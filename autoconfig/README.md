@@ -1,75 +1,66 @@
-# Unity Catalog Configuration Validator
+## Customized Terraform YAML Configuration Generation Tool
 
-This tool validates Unity Catalog configuration files against Azure resources and Databricks Unity Catalog requirements.
+The `run_autoconfig.py` script automates the generation of customized Unity Catalog configuration files from meta templates, enabling users to control Terraform resource deployment through simple config modifications without changing Terraform code directly.
 
-## Features
-- Validates configuration file structure
-- Checks metastore assignment in Databricks workspace
-- Verifies existence of Azure storage accounts and containers
-- Validates storage credentials in Unity Catalog
-- Ensures container uniqueness across UC objects
-- Comprehensive error reporting
+### Features
+- **Template-based Config Generation**: Uses meta configuration templates to generate standardized UC objects YAML config for downstream Terraform deployment.
+- **Dynamic User Schema Generation**: Automatically creates personal schemas for users from specified Databricks groups
 
-## Prerequisites
-1. Python 3.7+
-2. Azure service principal with:
-   - `Reader` access to Azure subscriptions
-   - Storage account access
-3. Databricks workspace with:
-   - Unity Catalog enabled
-   - Workspace admin privileges
-4. Azure CLI Authentication for both Azure and Databricks Workspaces
+### Arguments
 
+#### Required Arguments
+- `--bu` - Business unit name
+- `--sub_domain` - Subdomain name
+- `--workspace_info` - Unique workspace ID (e.g., "6208")
 
-## CLI Usage
+#### Optional Arguments
+- `--app_name` - Application name
+- `--meta_config_root` - Path to meta_configs directory (default: "./meta_configs")
+- `--meta_file_name` - Meta template file name (default: "meta_bu_subdomain_app_template.yml")
+- `--cloud_environment` - Environment name (default: "dev")
+- `--region` - Azure region (default: "westeurope")
+- `--subscription_id` - Azure subscription ID
+- `--databricks_workspace_url` - Databricks workspace URL (required for user schema generation)
+- `--databricks_token` - Databricks API token (required for user schema generation)
+- `--output_root` - Output directory for generated files (default: current directory)
 
-The package provides a command-line interface for configuration validation:
+#### User Schema Generation Arguments
+- `--generate_user_schemas` - Enable dynamic user schema generation from Databricks groups
+- `--user_groups` - Space-separated list of Databricks group names (e.g., "data-scientists data-engineers")
+- `--user_schema_template` - Template for user schema names (default: "<user_name>_schema")
 
+### Usage Examples
+
+#### Basic Configuration Generation
 ```bash
-python run_config_validator.py \
-    --config_dir ./configs \
-    --workspace_url https://your-workspace.cloud.databricks.com \
-    --subscription_id xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+python run_autoconfig.py \
+  --bu finance \
+  --sub_domain reporting \
+  --workspace_info 6208
 ```
 
-### Command Line Options
-
-| Option | Description | Required |
-|--------|-------------|----------|
-| `--config_dir` | Path to directory containing YAML configs | Yes |
-| `--workspace_url` | Databricks workspace URL | Yes |
-| `--subscription_id` | Azure subscription ID | Yes |
-
-
-## Python API Usage
-
-You can also use the validator programmatically:
-
-```python
-from autoconfig.config_validator import ConfigValidator
-
-validator = ConfigValidator(
-    config_dir="./configs",
-    workspace_url="https://your-workspace.cloud.databricks.com",
-    subscription_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-)
-
-errors = validator.validate()
-if errors:
-    print("Validation failed:")
-    for error in errors:
-        print(f"- {error}")
-else:
-    print("Validation successful!")
+#### Usage with User Schema Generation
+```bash
+python run_autoconfig.py \
+  --bu finance \
+  --sub_domain reporting \
+  --workspace_info 6208 \
+  --databricks_workspace_url "https://adb-1234567890123456.78.azuredatabricks.net" \
+  --databricks_token $DATABRICKS_WS_TOKEN \
+  --generate_user_schemas \
+  --user_groups "data-scientists" "data-engineers" "analysts" \
+  --app_name loan \
+  --user_schema_template "<prefix>_<user_name>_schema"
 ```
 
-
-
-## Development
-
-### Dependencies
-
-- Python 3.7+
-- Pydantic
-- Azure SDK
-- Databricks SDK
+#### Assign a Custom Template and Output Location
+```bash
+python run_autoconfig.py \
+  --bu marketing \
+  --sub_domain campaigns \
+  --workspace_info 6209 \
+  --meta_file_name "custom_template.yml" \
+  --output_root "/custom/output/path" \
+  --cloud_environment prod \
+  --region southeastasia
+```

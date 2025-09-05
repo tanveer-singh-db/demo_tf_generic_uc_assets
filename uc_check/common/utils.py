@@ -3,7 +3,7 @@ import sys
 
 
 def get_exception(debug: bool = True):
-    """Extract detailed exception information for debugging purposes."""
+    # print 'In # print exception'
     exc_type, exc_obj, tb = sys.exc_info()
     f = tb.tb_frame
     lineno = tb.tb_lineno
@@ -17,3 +17,4 @@ def get_exception(debug: bool = True):
     if debug:
         err_obj['error_at'] = 'EXCEPTION IN ({}, LINE {} "{}")'.format(filename, lineno, line.strip())
     return err_obj
+

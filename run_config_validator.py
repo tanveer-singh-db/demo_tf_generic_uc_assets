@@ -8,7 +8,7 @@ import argparse
 import json
 from argparse import ArgumentParser
 
-from autoconfig.config_validator import ConfigValidator
+from uc_check.config_validator import ConfigValidator
 
 parser = argparse.ArgumentParser(description='Validate Unity Catalog configuration')
 parser.add_argument('--config_dir', type=str,required=True, help='Directory Path where .yml/.yaml configuration files are located')
@@ -17,7 +17,17 @@ parser.add_argument("--subscription_id",type=str,required=True, help = "Azure su
 
 
 
+
 def main():
+    """
+    Main entry point for Unity Catalog configuration validation CLI.
+
+    Parses command line arguments, initializes the ConfigValidator,
+    and runs validation checks on the specified configuration files.
+
+    Raises:
+        Exception: If validation errors are found, raises exception with detailed error list
+    """
     args = parser.parse_args()
 
     cvl = ConfigValidator(config_dir = args.config_dir,

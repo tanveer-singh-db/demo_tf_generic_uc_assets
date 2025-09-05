@@ -1,0 +1,83 @@
+# Unity Catalog Configuration Validation Pipeline
+# This pipeline validates Unity Catalog configurations against Azure resources
+# and Databricks workspace settings before deployment.
+# It ensures all required resources exist and configurations are valid.
+
+name: $(Date:yyyyMMdd)$(Rev:.r)
+trigger:
+  - main
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+  - stage: validate_uc_config
+    displayName: "Validate Unity Catalog Config"
+    jobs:
+      - job: validate
+        displayName: "Run Config Validator"
+        pool:
+          vmImage: 'ubuntu-latest'
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '3.10'
+              addToPath: true
+
+          # Step 1: Install required Python packages for UC validation
+          # Installs databricks-sdk, azure libraries, and validation dependencies
+          - script: |
+              python -m pip install --upgrade pip
+              pip install databricks-sdk azure-identity azure-mgmt-storage pydantic pyyaml
+            displayName: 'Install Python dependencies'
+
+          # Step 2: Validate that required configuration files and directories exist
+          # Checks for config directory and terraform.tfvars file before proceeding
+          - script: |
+              CONFIG_DIR="${{ parameters.cloudEnvironment }}/${{ parameters.region }}/${{ parameters.workSpaceId }}"
+              TFVARS_PATH="$CONFIG_DIR/terraform.tfvars"
+
+              echo "Validating configuration files..."
+              if [ ! -d "$CONFIG_DIR" ]; then
+                echo "Error: Config directory not found at $CONFIG_DIR"
+                exit 1
+              fi
+
+              if [ ! -f "$TFVARS_PATH" ]; then
+                echo "Error: terraform.tfvars not found at $TFVARS_PATH"
+                exit 1
+              fi
+
+              echo "Configuration directory structure validated successfully"
+            displayName: 'Validate Configuration Structure'
+
+          # Step 3: Extract Databricks workspace URL from terraform.tfvars
+          # Parses the databricks_workspace_url variable and sets it as pipeline variable
+          - script: |
+              CONFIG_DIR="${{ parameters.cloudEnvironment }}/${{ parameters.region }}/${{ parameters.workSpaceId }}"
+              TFVARS_PATH="$CONFIG_DIR/terraform.tfvars"
+
+              echo "Extracting workspace_url from terraform.tfvars..."
+              WORKSPACE_URL=$(grep -oP 'databricks_workspace_url\s*=\s*"\K[^"]+' "$TFVARS_PATH")
+
+              if [ -z "$WORKSPACE_URL" ]; then
+                echo "Error: Could not extract databricks_workspace_url from $TFVARS_PATH"
+                exit 1
+              fi
+
+              echo "Extracted workspace_url: $WORKSPACE_URL"
+              echo "##vso[task.setvariable variable=WORKSPACE_URL]$WORKSPACE_URL"
+            displayName: 'Extract Workspace URL'
+
+          # Step 4: Execute Unity Catalog configuration validation
+          # Runs the validator against Azure resources and Databricks workspace
+          - script: |
+              CONFIG_DIR="${{ parameters.cloudEnvironment }}/${{ parameters.region }}/${{ parameters.workSpaceId }}"
+
+              echo "Running UC config validation..."
+              cd uc_check
+              python run_config_validator.py \
+                --config_dir "../$CONFIG_DIR" \
+                --workspace_url "$(WORKSPACE_URL)" \
+                --subscription_id "${{ parameters.deploymentSubscriptionId }}"
+            displayName: 'Validate UC Configuration'

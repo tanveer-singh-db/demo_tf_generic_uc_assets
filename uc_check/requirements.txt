@@ -1,0 +1,5 @@
+azure-identity
+azure-mgmt-storage
+pydantic
+pyyaml
+databricks-sdk

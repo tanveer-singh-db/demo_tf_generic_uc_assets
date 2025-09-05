@@ -2,7 +2,7 @@ import logging
 from io import StringIO
 import sys
 
-APP_LOGGER_NAME = 'autoconfig'
+APP_LOGGER_NAME = 'uc_check'
 
 d_log_levels = {
     'debug': logging.DEBUG,
@@ -18,11 +18,11 @@ def get_app_level_logger(
      log_level: str = 'debug',
      log_buffer: StringIO = None,
      log_file: str = None):
-    """Create and configure application logger with handlers."""
     logger = logging.getLogger(logger_name)
     if logger.hasHandlers():
         return logger
     log_level = d_log_levels.get(log_level.strip().lower(), logging.DEBUG)
+    # print(log_level)
     logger.setLevel(log_level)
 
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s", datefmt='%y-%m-%d %H:%M:%S')
@@ -47,7 +47,5 @@ def get_app_level_logger(
 
 
 def get_log(module_name: str = None, log_level: str = 'debug', app_logger_name: str = APP_LOGGER_NAME, log_file=None):
-    """Get logger instance for specific module or app-level logger."""
     app_level_logger = get_app_level_logger(logger_name=app_logger_name, log_level=log_level, log_file=log_file)
     return app_level_logger.getChild(module_name) if module_name else app_level_logger
-
